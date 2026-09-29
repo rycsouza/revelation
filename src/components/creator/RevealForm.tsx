@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { randomId } from "@/lib/client/storage";
 import type { PhotoItem } from "@/lib/client/upload";
-import { MAX_PHOTOS, revealInputSchema, type RevealInput } from "@/lib/reveal/schema";
+import { MAX_PHOTOS, MEDIA_ACCEPT, revealInputSchema, type RevealInput } from "@/lib/reveal/schema";
 import {
   BECOMES_SUGGESTIONS,
   MECHANICS,
@@ -413,8 +413,8 @@ export function RevealForm({
             />
             <FileField
               label="Música de fundo"
-              hint="Toca desde a abertura, até 8 MB. Use uma música que vocês tenham direito de usar."
-              accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav"
+              hint="Toca desde a abertura, até 4 MB (uns 3 minutos em MP3). Use uma música que vocês tenham direito de usar."
+              accept={MEDIA_ACCEPT.music}
               fileName={musicName}
               onPick={(file) => {
                 setMedia((m) => ({ ...m, music: file }));

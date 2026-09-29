@@ -25,8 +25,12 @@ export default function PrivacyPage() {
             <li>Os nomes dos convidados que vocês colocarem na lista.</li>
             <li>Os palpites e recados que a família deixar.</li>
             <li>
-              Um código aleatório do aparelho de cada convidado (para contar um palpite por pessoa) e um resumo
-              irreversível do IP de quem cria (para evitar abuso). Não guardamos o IP em si.
+              Um código aleatório do aparelho de cada convidado (para contar um palpite por pessoa) e, por no máximo 1
+              dia, um resumo irreversível (HMAC) do IP para limitar abuso. Não guardamos o IP em si.
+            </li>
+            <li>
+              No aparelho de quem cria, um cookie técnico com o acesso ao painel. Não é de rastreamento e sai pelo botão
+              “Tirar acesso deste aparelho”.
             </li>
           </ul>
         </section>
@@ -36,7 +40,11 @@ export default function PrivacyPage() {
           <ul>
             <li>Só quem tem o link. As páginas não aparecem no Google.</li>
             <li>O sexo e o nome do bebê só saem do servidor na hora da revelação.</li>
-            <li>A foto e a música ficam num endereço público, mas impossível de adivinhar.</li>
+            <li>
+              Fotos e música ficam num armazenamento privado. O site só entrega o arquivo para quem abre o link de uma
+              revelação que ainda existe. As fotos são reprocessadas no envio, e isso remove a localização (GPS) e
+              outros dados escondidos que o celular grava.
+            </li>
             <li>Palpites e recados aparecem para a família depois da revelação; o painel com os nomes é só de vocês.</li>
           </ul>
         </section>
@@ -45,7 +53,10 @@ export default function PrivacyPage() {
           <h2>Quando tudo é apagado</h2>
           <ul>
             <li>Automaticamente, 4 meses depois da data prevista (ou 1 ano depois de criar, se não tiver data).</li>
-            <li>A qualquer momento, pelo botão “Apagar revelação” no painel. Apaga tudo, inclusive arquivos.</li>
+            <li>
+              A qualquer momento, pelo botão “Apagar revelação” no painel. Apaga tudo, inclusive arquivos (cópias em
+              cache de fotos já vistas podem levar até 1 hora para expirar).
+            </li>
           </ul>
         </section>
 

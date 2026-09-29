@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadWall, postMessage } from "@/app/actions/public";
+import { CACHE_TIMES, readCache, writeCache } from "@/lib/client/cache";
 import { getDeviceId } from "@/lib/client/storage";
 import type { PublicReveal, Score, WallMessage } from "@/lib/reveal/types";
 
@@ -36,21 +37,39 @@ function ScoreBar({ score }: { score: Score }) {
   );
 }
 
-export function Wall({ reveal, authorName }: { reveal: PublicReveal; authorName?: string }) {
-  const [score, setScore] = useState<Score | null>(null);
-  const [messages, setMessages] = useState<WallMessage[]>([]);
+export interface WallData {
+  score: Score | null;
+  messages: WallMessage[];
+}
+
+export function Wall({
+  reveal,
+  initialWall,
+  authorName,
+}: {
+  reveal: PublicReveal;
+  /** Veio junto com a revelação: o mural aparece na hora, sem outra requisição. */
+  initialWall: WallData;
+  authorName?: string;
+}) {
+  const [wall, setWall] = useState<WallData>(
+    () => readCache<WallData>(`wall:${reveal.slug}`, CACHE_TIMES.wall)?.value ?? initialWall,
+  );
+  const { score, messages } = wall;
   const [author, setAuthor] = useState(authorName ?? "");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Stale-while-revalidate: só pergunta ao servidor se o que temos já passou de 30 s.
   useEffect(() => {
+    if (readCache(`wall:${reveal.slug}`, CACHE_TIMES.wall)?.fresh) return;
     let active = true;
     void loadWall(reveal.slug).then((res) => {
       if (!active || !res.ok) return;
-      setScore(res.score);
-      setMessages(res.messages);
+      writeCache(`wall:${reveal.slug}`, res.wall);
+      setWall(res.wall);
     });
     return () => {
       active = false;
@@ -64,7 +83,8 @@ export function Wall({ reveal, authorName }: { reveal: PublicReveal; authorName?
     const res = await postMessage({ slug: reveal.slug, deviceId: getDeviceId(), author, body });
     setSending(false);
     if (!res.ok) return setError(res.error);
-    setMessages(res.messages);
+    writeCache(`wall:${reveal.slug}`, res.wall);
+    setWall(res.wall);
     setBody("");
     setSent(true);
   }
@@ -74,7 +94,7 @@ export function Wall({ reveal, authorName }: { reveal: PublicReveal; authorName?
 
   return (
     <div className="flex w-full flex-col gap-6">
-      {reveal.guessEnabled && score && <ScoreBar score={score} />}
+      {score && <ScoreBar score={score} />}
 
       <section className="w-full rounded-3xl bg-white/15 p-5">
         <h2 className="mb-4 text-center font-display text-xl font-semibold">Deixe um recado para {reveal.parents}</h2>

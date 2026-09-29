@@ -1,12 +1,5 @@
-import type { BabySex, Guest, PublicReveal, RevealSecret, Score, WallMessage } from "./types";
-
-export interface RevealRecord {
-  id: string;
-  reveal: PublicReveal;
-  guests: Guest[];
-  secret: RevealSecret;
-  demo?: boolean;
-}
+import type { RevealRecord } from "./store";
+import type { BabySex, Guest, PublicReveal, Score, WallMessage } from "./types";
 
 const guests: Guest[] = [
   { slug: "vovo", name: "Vovó Maria", becomes: "vovó" },
@@ -29,7 +22,7 @@ function nextLiveSlot(now: number) {
 }
 
 export function getDemoReveal(slug: string, now = Date.now()): RevealRecord | null {
-  const common = { id: slug, demo: true, guests };
+  const common = { id: slug, slug, demo: true, guests, photoPaths: [], musicPath: null, expiresAt: null };
   switch (slug) {
     case "demo-raspadinha":
       return {
@@ -98,7 +91,8 @@ const SEED_SCORE: Score = { boy: 6, girl: 4 };
 export const demoMemory = {
   addGuess(slug: string, deviceId: string, guess: BabySex) {
     const { guesses } = bucket(slug);
-    if (!guesses.has(deviceId)) guesses.set(deviceId, guess);
+    // Limite para ninguém encher a memória do servidor com IDs de aparelho inventados.
+    if (!guesses.has(deviceId) && guesses.size < 500) guesses.set(deviceId, guess);
   },
   score(slug: string): Score {
     const score = { ...SEED_SCORE };

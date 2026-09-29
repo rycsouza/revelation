@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { randomId } from "@/lib/client/storage";
 import type { PhotoItem } from "@/lib/client/upload";
-import { MEDIA_RULES } from "@/lib/reveal/schema";
+import { MEDIA_ACCEPT } from "@/lib/reveal/schema";
 
 // Uma URL de prévia por arquivo, criada uma vez só. Não revogamos: são no máximo 3 fotos por página,
 // e revogar na limpeza do efeito quebra a prévia quando o React monta o componente duas vezes (Strict Mode).
@@ -106,7 +106,7 @@ export function PhotoPicker({
       <input
         ref={inputRef}
         type="file"
-        accept={MEDIA_RULES.photo.types.join(",")}
+        accept={MEDIA_ACCEPT.photo}
         multiple
         className="sr-only"
         aria-label="Escolher fotos"

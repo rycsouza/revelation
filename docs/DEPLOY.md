@@ -17,14 +17,14 @@ git push -u origin main
 
 1. Em https://supabase.com, crie um projeto. Escolha a região **South America (São Paulo)** e **desmarque** "Automatically expose new tables" (a migration de permissões cuida do acesso do servidor).
 2. Aplique o esquema. Há dois jeitos:
-   - **Pelo painel:** abra *SQL Editor* e rode, nesta ordem, o conteúdo de cada arquivo de [`supabase/migrations`](../supabase/migrations) (`20260928000000_init.sql`, `20260929000000_multiple_photos.sql` e `20260930000000_grants.sql`).
+   - **Pelo painel:** abra *SQL Editor* e rode, nesta ordem, o conteúdo de cada arquivo de [`supabase/migrations`](../supabase/migrations) (`20260928000000_init.sql`, `20260929000000_multiple_photos.sql`, `20260930000000_grants.sql` e `20261001000000_security_hardening.sql`).
    - **Pelo terminal:**
      ```bash
      npx supabase login
      npx supabase link --project-ref SEU_PROJECT_REF
      npx supabase db push
      ```
-3. Confira em *Storage* se o bucket `media` apareceu (público).
+3. Confira em *Storage* se o bucket `media` apareceu como **privado** (sem o selo *Public*). O site entrega os arquivos pelo servidor.
 4. Em *Project Settings → API Keys*, copie a **URL do projeto** e a chave **service_role** (ou *secret*).
 
 > O plano grátis pausa projetos sem uso por 7 dias. O cron diário (passo 3) consulta o banco todo dia, o que deve manter o projeto ativo. Se pausar mesmo assim, basta reativar no painel.

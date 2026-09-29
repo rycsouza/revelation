@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 // Sem caracteres ambíguos (0/o, 1/l/i): o link pode ser ditado por telefone.
 const SLUG_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
@@ -18,6 +18,18 @@ export function randomToken() {
 
 export function hashSecret(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+/** HMAC com chave secreta: diferente de um hash simples, não dá para reverter por força bruta (ex.: todos os IPv4). */
+export function hmacHex(key: string, value: string) {
+  return createHmac("sha256", key).update(value).digest("hex");
+}
+
+/** Compara dois textos em tempo constante (segredos vindos do cliente). */
+export function safeEqual(a: string, b: string) {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
 }
 
 export function tokenMatches(token: string, hash: string) {

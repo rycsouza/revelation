@@ -8,7 +8,8 @@ Um link para mandar à família: primeiro a notícia da gravidez, depois a revel
 - **3 temas animados:** nuvens, noite estrelada e jardim, em cores neutras para não dar pista.
 - **Palpite, placar e mural de recados** para a família.
 - **Sem spoiler:** o sexo só sai do servidor na hora da revelação, e a prévia do WhatsApp é neutra.
-- **Sem cadastro:** quem cria recebe um link secreto de edição.
+- **Sem cadastro:** quem cria vira dono naquele aparelho (cookie seguro) e recebe um link secreto de edição para outros aparelhos.
+- **O navegador nunca fala com o banco nem com o Storage:** tudo passa pelo servidor (ver [revisão de segurança](docs/SECURITY_REVIEW.md)).
 - **Privacidade:** tudo se apaga sozinho alguns meses depois da data prevista, ou na hora, pelo painel.
 
 ## Rodando localmente
@@ -32,14 +33,15 @@ Abra http://localhost:3000. Sem Supabase o site também roda, mas só com as dem
 | Comando | O que faz |
 | --- | --- |
 | `npm run dev` | Servidor de desenvolvimento |
-| `npm test` | Testes (Vitest) |
+| `npm test` | Testes unitários (Vitest) |
+| `npm run test:db` | Testes contra o Supabase local: autorização, IDOR, limites, permissões |
 | `npm run lint` | ESLint |
 | `npm run build` | Build de produção |
 | `npm run db:start` / `db:stop` | Liga e desliga o Supabase local |
 
 ### Testando no celular
 
-Com o celular na mesma rede Wi-Fi, abra `http://IP-DO-COMPUTADOR:3000` (o `npm run dev` mostra o endereço em *Network*). Em desenvolvimento, fotos e músicas passam pelo próprio Next (`/supabase-storage/...`), então o celular não precisa acessar o Supabase diretamente. Como é `http://` e não `https://`, o botão "Copiar" pede para copiar manualmente; em produção funciona normal.
+Com o celular na mesma rede Wi-Fi, abra `http://IP-DO-COMPUTADOR:3000` (o `npm run dev` mostra o endereço em *Network*). Como o navegador só fala com o próprio site, o celular não precisa alcançar o Supabase. Por ser `http://` e não `https://`, o botão "Copiar" pede para copiar manualmente; em produção funciona normal.
 
 Para publicar, siga o [guia de deploy](docs/DEPLOY.md).
 
@@ -52,28 +54,35 @@ Para publicar, siga o [guia de deploy](docs/DEPLOY.md).
 | `/` | Landing pública |
 | `/criar` | Formulário em 5 passos ([RevealForm](src/components/creator/RevealForm.tsx)) |
 | `/r/[slug]?p=[convidado]` | A experiência da família ([RevealExperience](src/components/reveal/RevealExperience.tsx)) |
-| `/painel/[slug]#[token]` | Painel do casal: links, palpites, recados, edição e exclusão |
-| `/minhas` | Revelações criadas neste aparelho (localStorage) |
+| `/painel/[slug]` | Painel do casal (SSR): links, palpites, recados, edição e exclusão. `#token` no fim é o link de edição |
+| `/minhas` | Revelações que este aparelho acessa (SSR, a partir dos cookies de dono) |
+| `/m/[slug]/[arquivo]` | Fotos e música, servidas do bucket privado |
 | `/privacidade` | O que é guardado e quando é apagado |
 
 ### Sem spoiler
 
 - O HTML da revelação e a prévia do link só levam dados neutros ([`PublicReveal`](src/lib/reveal/types.ts)).
-- O sexo e o nome do bebê ficam numa tabela separada e só saem pela rota [`/api/r/[slug]/secret`](src/app/api/r/[slug]/secret/route.ts). Na contagem ao vivo, o servidor responde `423` até o horário chegar.
+- O sexo e o nome do bebê ficam numa tabela separada e só saem pela server action [`revealAction`](src/app/actions/public.ts), junto com o mural. Na contagem ao vivo, o servidor recusa até o horário chegar.
 - O relógio do aparelho é corrigido pelo do servidor, para todo mundo revelar no mesmo segundo.
 - O mural de recados só abre depois da revelação (alguém pode escrever "é menina!!").
 
 ### Sem login
 
-Ao criar, o servidor gera um token aleatório e guarda **só o hash**. O link de edição é `/painel/<slug>#<token>`. O token fica depois do `#`, então não vai para o servidor em requisições nem aparece em logs. Toda [ação do dono](src/app/actions/owner.ts) confere o token.
+Ao criar, o servidor gera um token aleatório, guarda **só o hash** e entrega o token num cookie `HttpOnly` (o JavaScript da página não lê). O painel é renderizado no servidor e só sai para o navegador com o cookie certo. Para abrir em outro aparelho, o link de edição `/painel/<slug>#<token>` é trocado por esse cookie. O token fica depois do `#`, então não aparece em logs nem no `Referer`. Toda [ação do dono](src/app/actions/owner.ts) confere o cookie e opera só pelo `id` autorizado.
 
 ### Dados ([`store.ts`](src/lib/reveal/store.ts))
 
-- Supabase com RLS ligado e nenhuma policy pública: só o servidor (service role) lê e escreve.
-- Fotos (até 3) e música sobem **direto do navegador para o Storage** com URL assinada, então não passam pelo limite de 4,5 MB da Vercel. As fotos são reduzidas para 1600px no navegador antes do envio, e o servidor apaga do Storage os arquivos que saem da revelação.
-- Limites: 10 revelações por hora por IP (guardamos só o hash), 5 recados por aparelho, 80 convidados.
+- Supabase com RLS ligado, nenhuma policy pública e permissões só para a service role. O navegador não recebe nenhuma chave nem endereço do Supabase.
+- Fotos (até 3) e música sobem **pelo servidor** (server actions, até 4 MB). Ele confere a assinatura real do arquivo e **reprocessa as fotos** (remove GPS/EXIF). O bucket é privado, e a rota `/m/...` só entrega arquivo ligado a uma revelação existente.
+- Limites no Postgres (`hit_rate_limit`, por HMAC do IP): criação, palpites, recados, uploads e abertura do painel. Mais: 5 recados por aparelho, 3 fotos e 80 convidados.
 - As revelações vencem 4 meses depois da data prevista (ou 1 ano sem data), e o [cron diário](src/app/api/cron/cleanup/route.ts) apaga as vencidas, com os arquivos.
 - As demos (`demo-*`) não usam o banco: palpites e recados delas ficam em memória.
+
+### Cache
+
+- **Servidor:** a revelação fica 1 h no Data Cache do Next, e placar/mural 60 s. Toda escrita invalida a tag na hora (`updateTag`), então a família inteira abrindo o link vira uma consulta, sem ninguém ver dado velho.
+- **CDN e navegador:** fotos e música têm nome único e ficam em cache (1 h na CDN, 1 dia no navegador).
+- **Aba:** o resultado da revelação e o mural ficam no `sessionStorage` ("Ver de novo" e recarregar não consultam de novo), com revalidação em segundo plano. O router do Next guarda páginas dinâmicas por 30 s.
 
 ### Mecânicas
 

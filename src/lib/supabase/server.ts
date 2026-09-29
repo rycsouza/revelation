@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { serverEnv } from "@/lib/env";
 
 let client: SupabaseClient | null | undefined;
 
@@ -9,8 +10,7 @@ let client: SupabaseClient | null | undefined;
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
   if (client !== undefined) return client;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  client = url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
+  const { supabase } = serverEnv();
+  client = supabase ? createClient(supabase.url, supabase.serviceRoleKey, { auth: { persistSession: false } }) : null;
   return client;
 }

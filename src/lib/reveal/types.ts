@@ -35,7 +35,7 @@ export interface PublicReveal {
   revealAt?: string;
 }
 
-/** Só sai do servidor pela rota `/api/r/[slug]/secret`, na hora da revelação. */
+/** Só sai do servidor pela action `revealAction`, na hora da revelação. */
 export interface RevealSecret {
   sex: BabySex;
   babyName?: string;

@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { submitGuess } from "@/app/actions/public";
+import { revealAction, submitGuess } from "@/app/actions/public";
+import { CACHE_TIMES, clearCache, readCache, writeCache } from "@/lib/client/cache";
 import { getDeviceId } from "@/lib/client/storage";
 import { celebrate } from "@/lib/fx/celebrate";
 import { setSoundMuted, unlockAudio } from "@/lib/fx/sound";
-import type { BabySex, Guest, PublicReveal, RevealSecret } from "@/lib/reveal/types";
+import type { BabySex, Guest, PublicReveal, RevealSecret, Score, WallMessage } from "@/lib/reveal/types";
 import { ThemeBackdrop } from "@/components/theme/ThemeBackdrop";
 import { MECHANIC_COMPONENTS, needsSecretUpfront } from "./mechanics";
 import { GuessStep, IntroStep, PregnancyStep, ResultOverlay } from "./steps";
@@ -15,12 +16,28 @@ type Step = "intro" | "pregnancy" | "guess" | "mechanic";
 /** Tempo entre o instante da revelação e a tela de resultado: deixa o confete aparecer primeiro. */
 const RESULT_DELAY = 1600;
 
-async function fetchSecret(slug: string, attempts = 6): Promise<RevealSecret> {
+export interface RevealResult {
+  secret: RevealSecret;
+  wall: { score: Score | null; messages: WallMessage[] };
+}
+
+/**
+ * Busca o resultado por server action (POST para a própria página, sem endpoint REST público).
+ * Guarda no cache da aba: "Ver de novo" ou recarregar a página não consulta o servidor outra vez.
+ */
+async function fetchResult(slug: string, attempts = 6): Promise<RevealResult> {
+  const cached = readCache<RevealResult>(`reveal:${slug}`, CACHE_TIMES.reveal);
+  if (cached) return cached.value;
   for (let i = 0; i < attempts; i++) {
-    const res = await fetch(`/api/r/${encodeURIComponent(slug)}/secret`, { cache: "no-store" });
-    if (res.ok) return res.json();
-    // 423: o relógio do aparelho adiantou um pouco em relação ao servidor. Espera e tenta de novo.
-    if (res.status !== 423) break;
+    const res = await revealAction(slug);
+    if (res.ok) {
+      const result = { secret: res.secret, wall: res.wall };
+      writeCache(`reveal:${slug}`, result);
+      writeCache(`wall:${slug}`, res.wall);
+      return result;
+    }
+    // Trancado: o relógio do aparelho adiantou um pouco em relação ao servidor. Espera e tenta de novo.
+    if (!("locked" in res)) break;
     await new Promise((r) => setTimeout(r, 1000));
   }
   throw new Error("Não foi possível carregar a revelação.");
@@ -38,7 +55,7 @@ export function RevealExperience({
   const [step, setStep] = useState<Step>("intro");
   const [guess, setGuess] = useState<BabySex | null>(null);
   const [guessName, setGuessName] = useState<string | undefined>();
-  const [secret, setSecret] = useState<RevealSecret | null>(null);
+  const [result, setResult] = useState<RevealResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [round, setRound] = useState(0);
   const [muted, setMuted] = useState(false);
@@ -46,7 +63,7 @@ export function RevealExperience({
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const clockOffset = useRef(0);
-  const secretRequest = useRef<Promise<RevealSecret> | null>(null);
+  const resultRequest = useRef<Promise<RevealResult> | null>(null);
 
   useEffect(() => {
     clockOffset.current = serverNow - Date.now();
@@ -54,24 +71,24 @@ export function RevealExperience({
 
   const now = useCallback(() => Date.now() + clockOffset.current, []);
 
-  const loadSecret = useCallback(() => {
-    secretRequest.current ??= fetchSecret(reveal.slug).then(
-      (s) => {
-        setSecret(s);
-        return s;
+  const loadResult = useCallback(() => {
+    resultRequest.current ??= fetchResult(reveal.slug).then(
+      (r) => {
+        setResult(r);
+        return r;
       },
       (err: unknown) => {
-        secretRequest.current = null;
+        resultRequest.current = null;
         throw err;
       },
     );
-    return secretRequest.current;
+    return resultRequest.current;
   }, [reveal.slug]);
 
   function start() {
     unlockAudio();
     void audioRef.current?.play().catch(() => {});
-    if (needsSecretUpfront(reveal.mechanic)) loadSecret().catch(() => {});
+    if (needsSecretUpfront(reveal.mechanic)) loadResult().catch(() => {});
     setStep("pregnancy");
   }
 
@@ -84,8 +101,8 @@ export function RevealExperience({
 
   async function handleReveal() {
     try {
-      const s = await loadSecret();
-      celebrate(s.sex);
+      const r = await loadResult();
+      celebrate(r.secret.sex);
       setTimeout(() => setShowResult(true), RESULT_DELAY);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Algo deu errado.");
@@ -132,16 +149,17 @@ export function RevealExperience({
             setGuessName(name);
             setStep("mechanic");
             // Não trava a experiência se o palpite não salvar: o placar só fica sem ele.
-            void submitGuess({ slug: reveal.slug, deviceId: getDeviceId(), guestSlug: guest?.slug, name, guess: g }).catch(
-              () => {},
-            );
+            // Depois de salvo, o mural guardado (que pode ter vindo antes do palpite) fica velho: descarta.
+            void submitGuess({ slug: reveal.slug, deviceId: getDeviceId(), guestSlug: guest?.slug, name, guess: g })
+              .then(() => clearCache(`wall:${reveal.slug}`))
+              .catch(() => {});
           }}
         />
       )}
 
       {step === "mechanic" && (
         <div key={round} className="animate-enter">
-          <Mechanic reveal={reveal} secret={secret} onReveal={handleReveal} now={now} />
+          <Mechanic reveal={reveal} secret={result?.secret ?? null} onReveal={handleReveal} now={now} />
         </div>
       )}
 
@@ -154,10 +172,11 @@ export function RevealExperience({
         </div>
       )}
 
-      {showResult && secret && (
+      {showResult && result && (
         <ResultOverlay
           reveal={reveal}
-          secret={secret}
+          secret={result.secret}
+          initialWall={result.wall}
           guess={guess}
           authorName={guest?.name ?? guessName}
           onReplay={replay}

@@ -1,10 +1,12 @@
 /*
  * Conveniências guardadas só neste aparelho. localStorage pode falhar (aba anônima,
  * dados bloqueados), então tudo tem try/catch e um valor padrão.
+ * Nada de segredo aqui: o acesso do dono fica num cookie HttpOnly, que o JavaScript não lê.
  */
 
 const DEVICE_KEY = "revelation:device";
-export const MINE_KEY = "revelation:mine";
+/** Chave antiga, de quando o token de edição ficava no navegador. Apagada na primeira visita. */
+const LEGACY_MINE_KEY = "revelation:mine";
 
 let memoryDeviceId: string | null = null;
 
@@ -21,7 +23,7 @@ export function randomId() {
 export function getDeviceId() {
   try {
     let id = localStorage.getItem(DEVICE_KEY);
-    if (!id) {
+    if (!id || !/^[a-f0-9-]{16,64}$/.test(id)) {
       id = randomId();
       localStorage.setItem(DEVICE_KEY, id);
     }
@@ -32,41 +34,12 @@ export function getDeviceId() {
   }
 }
 
-export interface MyReveal {
-  slug: string;
-  token: string;
-  parents: string;
-  createdAt: string;
-}
-
-export function listMyReveals(): MyReveal[] {
+export function removeLegacyTokens() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(MINE_KEY) ?? "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveMyReveal(entry: MyReveal) {
-  try {
-    const list = listMyReveals();
-    const existing = list.find((r) => r.slug === entry.slug);
-    const next = existing
-      ? list.map((r) => (r.slug === entry.slug ? { ...entry, createdAt: r.createdAt } : r))
-      : [entry, ...list];
-    localStorage.setItem(MINE_KEY, JSON.stringify(next));
-  } catch {
-    // Sem localStorage: o link de edição continua valendo, só não fica salvo aqui.
-  }
-}
-
-export function forgetMyReveal(slug: string) {
-  try {
-    localStorage.setItem(MINE_KEY, JSON.stringify(listMyReveals().filter((r) => r.slug !== slug)));
+    localStorage.removeItem(LEGACY_MINE_KEY);
   } catch {}
 }
 
-export function editPath(slug: string, token: string) {
-  return `/painel/${slug}#${token}`;
+export function editUrl(origin: string, slug: string, token: string) {
+  return `${origin}/painel/${slug}#${token}`;
 }

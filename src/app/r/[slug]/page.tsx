@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RevealExperience } from "@/components/reveal/RevealExperience";
-import { findReveal } from "@/lib/reveal/store";
+import { getReveal } from "@/lib/reveal/queries";
 
 // A prévia do link no WhatsApp precisa ser neutra: nada de cor, nome do bebê ou emoji azul/rosa.
 export async function generateMetadata({ params }: PageProps<"/r/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const record = await findReveal(slug);
+  const record = await getReveal(slug);
   const title = { absolute: record ? `Uma novidade de ${record.reveal.parents} 💌` : "Revelação" };
   const description = "Toque para abrir a surpresa.";
   return {
@@ -31,11 +31,11 @@ function serverClock() {
 export default async function RevealPage({ params, searchParams }: PageProps<"/r/[slug]">) {
   const { slug } = await params;
   const { p } = await searchParams;
-  const record = await findReveal(slug);
+  const record = await getReveal(slug);
   if (!record) notFound();
 
   const guest = typeof p === "string" ? (record.guests.find((g) => g.slug === p) ?? null) : null;
 
-  // Só a parte pública vai para o cliente. O segredo sai pela rota /api/r/[slug]/secret.
+  // Só a parte pública vai para o cliente (SSR). O segredo só sai pela action revealAction, na hora da revelação.
   return <RevealExperience reveal={record.reveal} guest={guest} serverNow={serverClock()} />;
 }

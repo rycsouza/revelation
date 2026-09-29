@@ -5,7 +5,7 @@ import { NEUTRAL_COLORS, sparkle } from "@/lib/fx/celebrate";
 import { sfx, vibrate } from "@/lib/fx/sound";
 import { SEX_INFO, type BabySex, type Guest, type PublicReveal, type RevealSecret } from "@/lib/reveal/types";
 import { PhotoCarousel } from "./PhotoCarousel";
-import { Wall } from "./Wall";
+import { Wall, type WallData } from "./Wall";
 
 const primaryButton =
   "rounded-full bg-accent px-8 py-4 font-display text-xl font-semibold text-accent-fg shadow-lg shadow-black/10 transition hover:brightness-105 active:scale-95";
@@ -197,12 +197,14 @@ export function GuessStep({
 export function ResultOverlay({
   reveal,
   secret,
+  initialWall,
   guess,
   authorName,
   onReplay,
 }: {
   reveal: PublicReveal;
   secret: RevealSecret;
+  initialWall: WallData;
   guess: BabySex | null;
   authorName?: string;
   onReplay: () => void;
@@ -239,7 +241,7 @@ export function ResultOverlay({
           </button>
         </div>
 
-        <Wall reveal={reveal} authorName={authorName} />
+        <Wall reveal={reveal} initialWall={initialWall} authorName={authorName} />
       </div>
     </div>
   );
