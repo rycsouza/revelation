@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" fill="#f6efe6"/>
+  <circle cx="660" cy="90" r="120" fill="#efe4d3"/>
+  <circle cx="120" cy="470" r="160" fill="#efe4d3"/>
+  <g transform="translate(210 170)">
+    <path d="M20 170 C 0 120, 20 40, 90 30 C 140 24, 160 70, 150 110 C 145 140, 170 150, 200 150 C 250 150, 270 175, 262 200 C 255 225, 200 232, 130 230 C 70 228, 32 205, 20 170 Z" fill="#fffaf2" stroke="#d9c7ad" stroke-width="6"/>
+    <path d="M60 60 C 90 70, 120 70, 145 58" stroke="#e2c27a" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <circle cx="150" cy="56" r="10" fill="#e2c27a"/>
+  </g>
+  <g transform="translate(360 150) rotate(8)">
+    <path d="M20 170 C 0 120, 20 40, 90 30 C 140 24, 160 70, 150 110 C 145 140, 170 150, 200 150 C 250 150, 270 175, 262 200 C 255 225, 200 232, 130 230 C 70 228, 32 205, 20 170 Z" fill="#fffaf2" stroke="#d9c7ad" stroke-width="6"/>
+    <path d="M60 60 C 90 70, 120 70, 145 58" stroke="#e2c27a" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <circle cx="150" cy="56" r="10" fill="#e2c27a"/>
+  </g>
+  <text x="400" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#9a8466">em breve…</text>
+</svg>

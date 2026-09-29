@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520">
+  <rect width="800" height="520" fill="#0d0c10"/>
+  <defs>
+    <radialGradient id="cone" cx="0.5" cy="0" r="1">
+      <stop offset="0" stop-color="#6d6a73"/>
+      <stop offset="0.7" stop-color="#2a282e"/>
+      <stop offset="1" stop-color="#141317"/>
+    </radialGradient>
+    <radialGradient id="baby" cx="0.45" cy="0.4" r="0.6">
+      <stop offset="0" stop-color="#e9e6ee"/>
+      <stop offset="1" stop-color="#8f8b96"/>
+    </radialGradient>
+  </defs>
+  <path d="M400 40 L720 460 A420 420 0 0 1 80 460 Z" fill="url(#cone)"/>
+  <ellipse cx="400" cy="300" rx="190" ry="120" fill="#0d0c10" opacity="0.85"/>
+  <circle cx="330" cy="270" r="62" fill="url(#baby)"/>
+  <path d="M380 300 C 430 250, 520 260, 540 320 C 555 365, 500 390, 450 375 C 410 365, 385 340, 380 300 Z" fill="url(#baby)"/>
+  <path d="M500 350 C 530 360, 545 380, 530 395" stroke="#bdb9c4" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <g fill="#8f8b96" font-family="monospace" font-size="18">
+    <text x="24" y="36">ANA P. · 12s3d</text>
+    <text x="640" y="36">FR 28</text>
+    <text x="24" y="500">GA 12w3d</text>
+  </g>
+</svg>

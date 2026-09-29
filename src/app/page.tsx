@@ -1,69 +1,123 @@
-import Image from "next/image";
+import Link from "next/link";
+import { SiteShell } from "@/components/site/SiteShell";
+import { MECHANIC_INFO, MECHANICS } from "@/lib/reveal/types";
+
+const STEPS = [
+  { emoji: "✍️", title: "Vocês montam", text: "Nomes, sexo do bebê, foto do ultrassom, música e a lista da família." },
+  { emoji: "💬", title: "Mandam o link", text: "Cada pessoa ganha o seu, pelo WhatsApp. A prévia não entrega nada." },
+  { emoji: "🎉", title: "A família descobre", text: "Primeiro a gravidez, depois o palpite e, por fim, a revelação." },
+];
+
+const PROMISES = [
+  { emoji: "🔒", text: "O sexo só sai do servidor na hora da revelação. Nem espiando o código dá para descobrir antes." },
+  { emoji: "🧹", text: "Tudo se apaga sozinho alguns meses depois do parto, ou quando vocês quiserem." },
+  { emoji: "🚫", text: "Sem cadastro, sem anúncios, sem rastreadores. Feito por diversão." },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <SiteShell>
+      <section className="flex flex-col items-center gap-5 py-10 text-center sm:py-16">
+        <span className="animate-float text-7xl" aria-hidden>
+          💌
+        </span>
+        <h1 className="max-w-2xl font-display text-4xl font-bold leading-tight sm:text-6xl">
+          Conte a novidade do bebê de um jeito especial
+        </h1>
+        <p className="max-w-lg text-lg text-muted">
+          Um link para mandar à família: primeiro a notícia da gravidez, depois a revelação do sexo, com confete, som e
+          vibração no celular.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href="/criar"
+            className="rounded-full bg-accent px-8 py-4 font-display text-xl font-semibold text-accent-fg shadow-lg transition hover:brightness-105 active:scale-95"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Criar a nossa revelação
+          </Link>
+          <Link
+            href="/r/demo-raspadinha?p=vovo"
+            className="rounded-full border-2 border-card-border bg-white/60 px-8 py-4 font-display text-xl font-semibold transition hover:bg-white"
           >
-            Documentation
-          </a>
+            Ver um exemplo
+          </Link>
         </div>
-      </main>
-    </div>
+        <p className="text-sm text-muted">Grátis, sem cadastro, pronto em 3 minutos.</p>
+      </section>
+
+      <section className="py-8">
+        <h2 className="mb-6 text-center font-display text-3xl font-semibold">Como funciona</h2>
+        <ol className="grid gap-4 sm:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="rounded-3xl border border-card-border bg-card p-6 shadow-sm backdrop-blur">
+              <span className="text-4xl" aria-hidden>
+                {s.emoji}
+              </span>
+              <h3 className="mt-3 font-display text-xl font-semibold">
+                {i + 1}. {s.title}
+              </h3>
+              <p className="mt-1 text-muted">{s.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="py-8">
+        <h2 className="mb-2 text-center font-display text-3xl font-semibold">Escolham como revelar</h2>
+        <p className="mb-6 text-center text-muted">Toque para experimentar como a família vai ver.</p>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {MECHANICS.map((m) => {
+            const info = MECHANIC_INFO[m];
+            return (
+              <li key={m}>
+                <Link
+                  href={`/r/${info.demo}?p=vovo`}
+                  className="flex h-full items-start gap-4 rounded-3xl border border-card-border bg-card p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <span className="text-4xl" aria-hidden>
+                    {info.emoji}
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="font-display text-xl font-semibold">{info.label}</span>
+                    <span className="text-sm text-muted">{info.description}</span>
+                    <span className="mt-1 text-sm font-semibold text-accent">Experimentar →</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="mt-4 text-center text-sm text-muted">
+          A contagem também tem o{" "}
+          <Link href="/r/demo-contagem?p=vovo" className="font-semibold underline underline-offset-2">
+            modo sem horário marcado
+          </Link>
+          , em que cada um aperta o botão quando abrir.
+        </p>
+      </section>
+
+      <section className="py-8">
+        <ul className="grid gap-4 sm:grid-cols-3">
+          {PROMISES.map((p) => (
+            <li key={p.text} className="flex gap-3 rounded-3xl bg-white/40 p-5">
+              <span className="text-2xl" aria-hidden>
+                {p.emoji}
+              </span>
+              <p className="text-sm">{p.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="flex flex-col items-center gap-4 py-10 text-center">
+        <h2 className="font-display text-3xl font-semibold">Vamos contar?</h2>
+        <Link
+          href="/criar"
+          className="rounded-full bg-accent px-8 py-4 font-display text-xl font-semibold text-accent-fg shadow-lg transition hover:brightness-105 active:scale-95"
+        >
+          Criar revelação
+        </Link>
+      </section>
+    </SiteShell>
   );
 }
