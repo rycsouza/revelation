@@ -15,9 +15,9 @@ git push -u origin main
 
 ## 2. Supabase (banco e arquivos)
 
-1. Em https://supabase.com, crie um projeto. Escolha a região **South America (São Paulo)**.
+1. Em https://supabase.com, crie um projeto. Escolha a região **South America (São Paulo)** e **desmarque** "Automatically expose new tables" (a migration de permissões cuida do acesso do servidor).
 2. Aplique o esquema. Há dois jeitos:
-   - **Pelo painel:** abra *SQL Editor* e rode, nesta ordem, o conteúdo de cada arquivo de [`supabase/migrations`](../supabase/migrations) (`20260928000000_init.sql` e depois `20260929000000_multiple_photos.sql`).
+   - **Pelo painel:** abra *SQL Editor* e rode, nesta ordem, o conteúdo de cada arquivo de [`supabase/migrations`](../supabase/migrations) (`20260928000000_init.sql`, `20260929000000_multiple_photos.sql` e `20260930000000_grants.sql`).
    - **Pelo terminal:**
      ```bash
      npx supabase login
